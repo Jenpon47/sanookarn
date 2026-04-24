@@ -1,0 +1,839 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>🐘 สนุกอ่านไทย - ป.1 เด็กเก่งภาษาไทย</title>
+    
+    <script>
+        if (typeof window.console === "undefined") {
+            window.console = {};
+        }
+        var consoleMethods = ['log', 'info', 'warn', 'error', 'dir', 'clear'];
+        for (var i = 0; i < consoleMethods.length; i++) {
+            if (typeof window.console[consoleMethods[i]] !== "function") {
+                window.console[consoleMethods[i]] = function() {};
+            }
+        }
+    </script>
+
+    <link href="https://fonts.googleapis.com/css2?family=Itim&family=Comic+Neue:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Itim', 'Comic Neue', 'Sarabun', cursive, sans-serif;
+            background: #9b59b6; /* ธีมสีพื้นหลังโต๊ะ */
+            background-image: radial-gradient(#8e44ad 2px, transparent 2px);
+            background-size: 30px 30px;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow-x: hidden;
+        }
+
+        /* หน้าจอต้อนรับ */
+        #welcome-screen {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            transition: opacity 0.8s ease;
+        }
+        .welcome-box {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 50px;
+            border-radius: 40px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.2);
+            text-align: center;
+            animation: floatUpDown 3s ease-in-out infinite;
+        }
+        @keyframes floatUpDown {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-15px); }
+        }
+        .welcome-icon { font-size: 6rem; margin-bottom: 10px; }
+        .welcome-title {
+            font-size: 3.5rem; color: #e67e22;
+            text-shadow: 3px 3px 0 #ffeaa7; margin-bottom: 10px;
+        }
+        .welcome-subtitle { font-size: 1.8rem; color: #7f8c8d; margin-bottom: 30px; }
+        .btn-start {
+            background: #2ecc71; color: white; border: none;
+            padding: 20px 50px; font-size: 2.2rem; font-family: 'Itim', cursive;
+            border-radius: 50px; cursor: pointer; box-shadow: 0 10px 0 #27ae60;
+            transition: 0.1s; animation: pulse 1.5s infinite;
+        }
+        .btn-start:active { transform: translateY(10px); box-shadow: 0 0 0 #27ae60; }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        /* ดีไซน์หน้าสมุดหนังสือ */
+        #app-container {
+            display: none;
+            width: 100%; max-width: 900px;
+            padding: 20px;
+        }
+        .book-page {
+            background: #fffdf5;
+            border-radius: 10px 30px 30px 10px;
+            min-height: 85vh;
+            position: relative;
+            box-shadow: -10px 20px 40px rgba(0,0,0,0.3), inset -5px 0 10px rgba(0,0,0,0.05);
+            padding: 40px 40px 50px 70px;
+            background-image: repeating-linear-gradient(transparent, transparent 39px, #e1e1e1 39px, #e1e1e1 40px);
+            background-attachment: local;
+            text-align: center;
+        }
+        /* สันห่วงสมุด */
+        .book-spine {
+            position: absolute; top: 0; left: 10px; bottom: 0; width: 30px;
+            background: linear-gradient(90deg, #d3c4a1, #e7ddc6, #d3c4a1);
+            border-right: 1px solid #c2b28f;
+            display: flex; flex-direction: column; justify-content: space-evenly; align-items: center;
+            border-radius: 10px 0 0 10px;
+        }
+        .ring {
+            width: 20px; height: 10px; background: #95a5a6; border-radius: 5px;
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.4);
+        }
+
+        h1.book-title {
+            font-size: 3rem; color: #d35400; background: white;
+            display: inline-block; padding: 10px 30px; border-radius: 50px;
+            border: 4px dashed #f39c12; margin-bottom: 20px;
+        }
+
+        /* สารบัญ (Table of Contents) */
+        .toc-list {
+            display: flex; flex-direction: column; gap: 15px; margin-top: 20px;
+            text-align: left; padding: 0 20px;
+        }
+        .toc-item {
+            background: rgba(255, 234, 167, 0.5);
+            border-left: 8px solid #fdcb6e;
+            padding: 15px 25px; border-radius: 0 20px 20px 0;
+            font-size: 1.8rem; cursor: pointer; transition: all 0.2s;
+            display: flex; justify-content: space-between; align-items: center;
+            color: #2d3436; font-weight: bold;
+        }
+        .toc-item:hover { background: rgba(255, 234, 167, 0.9); transform: translateX(10px); }
+        .toc-item:active { transform: scale(0.98); }
+
+        .step-content { display: none; animation: fadeIn 0.4s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        h2 {
+            font-size: 2.2rem; color: #fff; background: #e74c3c;
+            display: inline-block; padding: 8px 30px; border-radius: 50px;
+            margin-bottom: 25px; box-shadow: 0 4px 10px rgba(231,76,60,0.4);
+        }
+
+        /* การ์ดตัวอักษร */
+        .card-container { display: flex; flex-wrap: wrap; justify-content: center; gap: 15px; max-width: 800px; margin: 20px auto; }
+        .card {
+            background: #fff; border: 4px solid #3498db; border-radius: 20px;
+            padding: 15px 10px; font-size: 2.8rem; font-weight: bold; width: 90px;
+            text-align: center; cursor: pointer; box-shadow: 0 6px 0 #2980b9; color: #2c3e50; transition: 0.1s;
+        }
+        .card:active { transform: translateY(4px); box-shadow: 0 2px 0 #2980b9; }
+
+        select, .btn-action {
+            font-family: 'Itim', cursive; font-size: 1.6rem; padding: 12px 20px; margin: 10px;
+            border-radius: 50px; border: 2px solid #8e44ad; background: #f4ecf7; cursor: pointer; font-weight: bold; color: #2c3e50;
+        }
+        .btn-action {
+            background: #9b59b6; color: white; border: none; padding: 12px 35px;
+            box-shadow: 0 6px 0 #8e44ad;
+        }
+        .btn-action:active { transform: translateY(4px); box-shadow: 0 2px 0 #8e44ad; }
+
+        /* ผลลัพธ์และแอนิเมชัน */
+        .result-container {
+            margin: 20px; padding: 20px; border-radius: 40px; background: #fff0d4;
+            display: inline-block; box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        .result {
+            font-size: 4.5rem; color: #c0392b; font-weight: bold; letter-spacing: 2px;
+            display: inline-block;
+        }
+        /* ย่อฟอนต์นิดหน่อยสำหรับหน้าพยัญชนะเพื่อให้รูปภาพและอักษรอยู่ในบรรทัดเดียวกันสวยๆ */
+        #s1-result.result {
+            font-size: 3.5rem;
+        }
+
+        .anim-pop { animation: popBounce 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        @keyframes popBounce {
+            0% { transform: scale(0.5); opacity: 0; }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .back-btn {
+            background: #7f8c8d; color: white; border: none; padding: 12px 30px;
+            font-size: 1.4rem; border-radius: 40px; margin-top: 30px; cursor: pointer; font-family: 'Itim', cursive;
+        }
+
+        /* แบบทดสอบ */
+        .quiz-area { background: #e8f8f5; border-radius: 40px; padding: 20px; margin: 20px auto; border: 3px dashed #1abc9c; }
+        .listen-btn { background: #f39c12; color: white; font-size: 2rem; padding: 15px 30px; border-radius: 60px; border: none; cursor: pointer; margin: 15px; font-weight: bold; box-shadow: 0 6px 0 #d35400; font-family: 'Itim', cursive; }
+        .listen-btn:active { transform: translateY(4px); box-shadow: 0 2px 0 #d35400; }
+        .options-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin: 20px 0; }
+        .quiz-option { background: #3498db; color: white; padding: 15px; font-size: 2rem; border-radius: 40px; cursor: pointer; font-weight: bold; border: none; transition: 0.1s; box-shadow: 0 5px 0 #2980b9; font-family: 'Itim', cursive;}
+        .quiz-option:active { transform: translateY(4px); box-shadow: 0 1px 0 #2980b9; }
+        .quiz-option.disabled-opt { opacity: 0.5; pointer-events: none; }
+        .feedback { font-size: 1.8rem; background: white; padding: 10px; border-radius: 50px; margin: 15px; }
+        .score-board { font-size: 1.8rem; background: #2c3e50; color: gold; padding: 10px 20px; border-radius: 50px; display: inline-block; }
+
+        /* ป๊อปอัปเหรียญรางวัล */
+        #medal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85); z-index: 20000; display: none;
+            align-items: center; justify-content: center; flex-direction: column;
+        }
+        .medal-box {
+            background: white; padding: 40px; border-radius: 50px; text-align: center;
+            box-shadow: 0 0 50px rgba(255, 215, 0, 0.5); animation: zoomIn 0.5s ease;
+            position: relative; overflow: hidden;
+        }
+        @keyframes zoomIn { from { transform: scale(0); } to { transform: scale(1); } }
+        .medal-icon { font-size: 8rem; animation: floatUpDown 2s infinite; }
+        .medal-title { font-size: 3rem; color: #f39c12; margin: 10px 0; }
+
+        /* Confetti */
+        .confetti { position: absolute; width: 15px; height: 15px; background: #f00; z-index: 20001; animation: fall linear forwards; }
+        @keyframes fall { to { transform: translateY(100vh) rotate(720deg); opacity: 0; } }
+
+        #tts-status {
+            position: fixed; bottom: 18px; right: 18px; background: rgba(0,0,0,0.75); color: #fff;
+            font-size: 0.95rem; padding: 7px 16px; border-radius: 30px; z-index: 9999; display: none;
+        }
+        #tts-status.show { display: block; }
+
+        @media (max-width: 600px) {
+            .book-page { padding: 30px 20px 40px 50px; }
+            .card { width: 70px; font-size: 2.2rem; padding: 10px; }
+            .result { font-size: 3rem; }
+            #s1-result.result { font-size: 2.5rem; }
+            .toc-item { font-size: 1.4rem; padding: 12px 15px; }
+            h1.book-title { font-size: 2.2rem; }
+            select, .btn-action { font-size: 1.3rem; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- หน้าจอต้อนรับสุดอลังการ -->
+<div id="welcome-screen">
+    <div class="welcome-box">
+        <div class="welcome-icon">🐘✨</div>
+        <h1 class="welcome-title">สนุกอ่านไทย ป.1</h1>
+        <p class="welcome-subtitle">ศูนย์บัญชาการฝึกอ่านเด็กเก่ง!</p>
+        <button class="btn-start" onclick="startApp()">📖 เริ่มเรียนกันเลย!</button>
+    </div>
+</div>
+
+<div id="tts-status">🔊 กำลังอ่าน...</div>
+
+<!-- หน้าสมุดหนังสือ -->
+<div id="app-container">
+    <div class="book-page">
+        <!-- สันห่วง -->
+        <div class="book-spine">
+            <div class="ring"></div><div class="ring"></div><div class="ring"></div>
+            <div class="ring"></div><div class="ring"></div><div class="ring"></div>
+            <div class="ring"></div><div class="ring"></div><div class="ring"></div>
+        </div>
+
+        <div id="mainMenu">
+            <h1 class="book-title">📚 สารบัญบทเรียน</h1>
+            <div class="toc-list">
+                <div class="toc-item" onclick="showStep('step1')"><span>🔤 สเต็ป 1: พยัญชนะไทย ๓ หมู่</span> <span>▶</span></div>
+                <div class="toc-item" onclick="showStep('step2')"><span>🎵 สเต็ป 2: สระน่ารู้</span> <span>▶</span></div>
+                <div class="toc-item" onclick="showStep('step3')"><span>🍉 สเต็ป 3: แม่ ก กา</span> <span>▶</span></div>
+                <div class="toc-item" onclick="showStep('step4')"><span>📦 สเต็ป 4: ๘ มาตราตัวสะกด</span> <span>▶</span></div>
+                <div class="toc-item" onclick="showStep('step5')"><span>🎭 สเต็ป 5: ผันวรรณยุกต์</span> <span>▶</span></div>
+                <div class="toc-item" onclick="showStep('step6')"><span>🔄 สเต็ป 6: สระแปลงร่าง</span> <span>▶</span></div>
+                <div class="toc-item" onclick="showStep('step8')" style="background: rgba(162, 15b, 254, 0.5); border-left-color: #6c5ce7;"><span>🐲 สเต็ป 7: คำควบกล้ำ (ใหม่!)</span> <span>▶</span></div>
+                <div class="toc-item" onclick="showStep('step9')" style="background: rgba(162, 15b, 254, 0.5); border-left-color: #6c5ce7;"><span>🐶 สเต็ป 8: อักษรนำ (ใหม่!)</span> <span>▶</span></div>
+                <div class="toc-item" onclick="showStep('step7')" style="background: rgba(85, 239, 196, 0.5); border-left-color: #00b894;"><span>🏆 สเต็ป 9: แบบทดสอบเด็กเก่ง</span> <span>▶</span></div>
+            </div>
+            <div style="margin-top:30px; color:#7f8c8d;">พัฒนาโดย ลุง "ศน.เจน"</div>
+        </div>
+
+        <!-- สเต็ป 1 -->
+        <div id="step1" class="step-content">
+            <h2>✨ พยัญชนะ ๓ หมู่ ✨</h2>
+            <select id="s1-class" onchange="changeConsonantClass()">
+                <option value="mid">🟩 อักษรกลาง (9 ตัว)</option>
+                <option value="high">🟦 อักษรสูง (11 ตัว)</option>
+                <option value="low">🟥 อักษรต่ำ (24 ตัว)</option>
+            </select>
+            <div id="class-mid" class="card-container">
+                <div class="card" onclick="showSound1('กอ ไก่')">ก</div><div class="card" onclick="showSound1('จอ จาน')">จ</div>
+                <div class="card" onclick="showSound1('ดอ เด็ก')">ด</div><div class="card" onclick="showSound1('ตอ เต่า')">ต</div>
+                <div class="card" onclick="showSound1('บอ ใบไม้')">บ</div><div class="card" onclick="showSound1('ปอ ปลา')">ป</div>
+                <div class="card" onclick="showSound1('ออ อ่าง')">อ</div>
+            </div>
+            <div id="class-high" class="card-container" style="display:none;">
+                <div class="card" onclick="showSound1('ขอ ไข่')">ข</div><div class="card" onclick="showSound1('ฉอ ฉิ่ง')">ฉ</div>
+                <div class="card" onclick="showSound1('ถอ ถุง')">ถ</div><div class="card" onclick="showSound1('ผอ ผึ้ง')">ผ</div>
+                <div class="card" onclick="showSound1('ฝอ ฝา')">ฝ</div><div class="card" onclick="showSound1('สอ เสือ')">ส</div>
+                <div class="card" onclick="showSound1('หอ หีบ')">ห</div>
+            </div>
+            <div id="class-low" class="card-container" style="display:none;">
+                <div class="card" onclick="showSound1('คอ ควาย')">ค</div><div class="card" onclick="showSound1('งอ งู')">ง</div>
+                <div class="card" onclick="showSound1('ชอ ช้าง')">ช</div><div class="card" onclick="showSound1('ซอ โซ่')">ซ</div>
+                <div class="card" onclick="showSound1('ทอ ทหาร')">ท</div><div class="card" onclick="showSound1('นอ หนู')">น</div>
+                <div class="card" onclick="showSound1('พอ พาน')">พ</div><div class="card" onclick="showSound1('ฟอ ฟัน')">ฟ</div>
+                <div class="card" onclick="showSound1('มอ ม้า')">ม</div><div class="card" onclick="showSound1('ยอ ยักษ์')">ย</div>
+                <div class="card" onclick="showSound1('รอ เรือ')">ร</div><div class="card" onclick="showSound1('ลอ ลิง')">ล</div>
+                <div class="card" onclick="showSound1('วอ แหวน')">ว</div>
+            </div>
+            <div class="result-container"><div id="s1-result" class="result">🌸</div></div>
+            <br><button class="back-btn" onclick="showMenu()">⬅️ กลับหน้าสารบัญ</button>
+        </div>
+
+        <!-- สเต็ป 2 -->
+        <div id="step2" class="step-content">
+            <h2>🎶 สระน่ารู้</h2>
+            <div class="card-container">
+                <div class="card" onclick="showSound2('สระ อะ')">-ะ</div><div class="card" onclick="showSound2('สระ อา')">-า</div>
+                <div class="card" onclick="showSound2('สระ อิ')">-ิ</div><div class="card" onclick="showSound2('สระ อี')">-ี</div>
+                <div class="card" onclick="showSound2('สระ อึ')">-ึ</div><div class="card" onclick="showSound2('สระ อือ')">-ื</div>
+                <div class="card" onclick="showSound2('สระ อุ')">-ุ</div><div class="card" onclick="showSound2('สระ อู')">-ู</div>
+                <div class="card" onclick="showSound2('สระ เอะ')">เ-ะ</div><div class="card" onclick="showSound2('สระ เอ')">เ-</div>
+                <div class="card" onclick="showSound2('สระ แอะ')">แ-ะ</div><div class="card" onclick="showSound2('สระ แอ')">แ-</div>
+                <div class="card" onclick="showSound2('สระ โอะ')">โ-ะ</div><div class="card" onclick="showSound2('สระ โอ')">โ-</div>
+                <div class="card" onclick="showSound2('สระ ออ')">-อ</div><div class="card" onclick="showSound2('สระ อำ')">-ำ</div>
+                <div class="card" onclick="showSound2('สระ ใอ')">ใ-</div><div class="card" onclick="showSound2('สระ ไอ')">ไ-</div>
+                <div class="card" onclick="showSound2('สระ เอา')">เ-า</div>
+            </div>
+            <div class="result-container"><div id="s2-result" class="result">🐣</div></div>
+            <br><button class="back-btn" onclick="showMenu()">⬅️ กลับหน้าสารบัญ</button>
+        </div>
+
+        <!-- สเต็ป 3 -->
+        <div id="step3" class="step-content">
+            <h2>🍉 แม่ ก กา</h2>
+            <select id="s3-cons"></select><span>+</span><select id="s3-vowel"></select>
+            <br><button onclick="blendStep3()" class="btn-action">✨ ประสมคำ</button>
+            <br><div class="result-container"><div id="s3-result" class="result">คำ</div></div>
+            <br><button class="back-btn" onclick="showMenu()">⬅️ กลับหน้าสารบัญ</button>
+        </div>
+
+        <!-- สเต็ป 4 -->
+        <div id="step4" class="step-content">
+            <h2>📦 ตัวสะกด ๘ มาตรา</h2>
+            <select id="s4-cons"></select><span>+</span><select id="s4-vowel"></select><span>+</span><select id="s4-final"></select>
+            <br><button onclick="blendStep4()" class="btn-action">✨ ประสมคำ</button>
+            <br><div class="result-container"><div id="s4-result" class="result">คำ</div></div>
+            <br><button class="back-btn" onclick="showMenu()">⬅️ กลับหน้าสารบัญ</button>
+        </div>
+
+        <!-- สเต็ป 5 -->
+        <div id="step5" class="step-content">
+            <h2>🎭 ผันวรรณยุกต์</h2>
+            <select id="s5-class" onchange="updateS5Cons()">
+                <option value="mid">อักษรกลาง</option><option value="high">อักษรสูง</option><option value="low">อักษรต่ำ</option>
+            </select><br>
+            <select id="s5-cons"></select><span>+</span>
+            <select id="s5-vowel">
+                <option value="า">สระ -า</option><option value="ี">สระ -ี</option><option value="ู">สระ -ู</option>
+                <option value="เ">สระ เ-</option><option value="โ">สระ โ-</option>
+            </select><br>
+            <button onclick="conjugateStep5()" class="btn-action">🎶 ดูการผันเสียง</button>
+            <div id="s5-result" style="display:flex; justify-content:center; gap:15px; flex-wrap:wrap; margin-top:20px;"></div>
+            <br><button class="back-btn" onclick="showMenu()">⬅️ กลับหน้าสารบัญ</button>
+        </div>
+
+        <!-- สเต็ป 6 -->
+        <div id="step6" class="step-content">
+            <h2>🔄 สระแปลงร่าง</h2>
+            <select id="s6-class" onchange="updateS6Cons()">
+                <option value="mid">อักษรกลาง</option><option value="high">อักษรสูง</option><option value="low">อักษรต่ำ</option>
+            </select><br>
+            <select id="s6-cons"></select><span>+</span>
+            <select id="s6-vowel">
+                <option value="ะ" data-type="อะ">สระ -ะ</option>
+                <option value="โ-ะ" data-type="โอะ">สระ โ-ะ</option>
+                <option value="เ-ะ" data-type="เอะ">สระ เ-ะ</option>
+                <option value="แ-ะ" data-type="แอะ">สระ แ-ะ</option>
+                <option value="เ-อ" data-type="เออ">สระ เ-อ</option>
+                <option value="ัว" data-type="อัว">สระ -ัว</option>
+            </select><span>+</span>
+            <select id="s6-final"></select><br>
+            <button onclick="transformWord()" class="btn-action">🐉 ดูการแปลงร่าง</button>
+            <br><div class="result-container"><div id="s6-result" class="result">คำ</div></div>
+            <div id="s6-story" style="font-size:1.6rem; color:#d35400; margin-top:10px;"></div>
+            <br><button class="back-btn" onclick="showMenu()">⬅️ กลับหน้าสารบัญ</button>
+        </div>
+
+        <!-- สเต็ป 8: ควบกล้ำ (ใหม่) -->
+        <div id="step8" class="step-content">
+            <h2>🐲 คำควบกล้ำ (กร กล ทร)</h2>
+            <select id="s8-c1">
+                <option value="ก">ก</option><option value="ข">ข</option><option value="ค">ค</option>
+                <option value="ต">ต</option><option value="ป">ป</option><option value="ผ">ผ</option>
+                <option value="พ">พ</option>
+            </select><span>+</span>
+            <select id="s8-c2">
+                <option value="ร">ร (เรือ)</option><option value="ล">ล (ลิง)</option><option value="ว">ว (แหวน)</option>
+            </select><span>+</span>
+            <select id="s8-vowel"></select>
+            <br><button onclick="blendStep8()" class="btn-action">✨ ประสมคำ</button>
+            <br><div class="result-container"><div id="s8-result" class="result">คำ</div></div>
+            <br><button class="back-btn" onclick="showMenu()">⬅️ กลับหน้าสารบัญ</button>
+        </div>
+
+        <!-- สเต็ป 9: อักษรนำ (ใหม่) -->
+        <div id="step9" class="step-content">
+            <h2>🐶 อักษรนำ (ห นำ)</h2>
+            <select id="s9-c1" disabled><option value="ห">ห</option></select><span>+</span>
+            <select id="s9-c2">
+                <option value="ง">ง</option><option value="ญ">ญ</option><option value="น">น</option>
+                <option value="ม">ม</option><option value="ย">ย</option><option value="ร">ร</option>
+                <option value="ล">ล</option><option value="ว">ว</option>
+            </select><span>+</span>
+            <select id="s9-vowel"></select>
+            <br><button onclick="blendStep9()" class="btn-action">✨ ประสมคำ</button>
+            <br><div class="result-container"><div id="s9-result" class="result">คำ</div></div>
+            <br><button class="back-btn" onclick="showMenu()">⬅️ กลับหน้าสารบัญ</button>
+        </div>
+
+        <!-- สเต็ป 7: แบบทดสอบ -->
+        <div id="step7" class="step-content">
+            <h2>🏆 แบบทดสอบเด็กเก่ง</h2>
+            <div class="quiz-area">
+                <div class="score-board" id="quizScoreDisplay">⭐ คะแนน: 0 / 0</div>
+                <div id="questionNumber" style="font-size:1.5rem; margin-top: 10px;">ข้อที่ 1 / 10</div>
+                <button id="listenWordBtn" class="listen-btn">🔊 กดฟังคำศัพท์ที่นี่</button>
+                <div class="options-grid" id="optionsContainer"></div>
+                <div id="quizFeedback" class="feedback"></div>
+                <button id="nextQuizBtn" class="next-quiz-btn" style="display: none;">➡️ ข้อถัดไป</button>
+                <button id="restartQuizBtn" class="restart-quiz-btn" style="display: none;">🔄 เล่นใหม่อีกรอบ</button>
+            </div>
+            <br><button class="back-btn" onclick="showMenu()">⬅️ กลับหน้าสารบัญ</button>
+        </div>
+    </div>
+</div>
+
+<!-- ป๊อปอัปเหรียญรางวัล (ซ่อนไว้) -->
+<div id="medal-overlay">
+    <div class="medal-box">
+        <div class="medal-icon">🥇</div>
+        <h1 class="medal-title">สุดยอดเด็กเก่ง!</h1>
+        <p style="font-size: 1.8rem; color: #7f8c8d;">หนูทำคะแนนเต็ม 10/10<br>รับเหรียญทองไปเลย!</p>
+        <br>
+        <button class="btn-start" onclick="closeMedal()" style="font-size: 1.5rem; padding: 15px 30px;">สุดยอด! ปิดหน้าต่าง</button>
+    </div>
+</div>
+
+<script>
+// =========================================================
+// ควบคุมหน้าจอต้อนรับ (Welcome Screen)
+// =========================================================
+function startApp() {
+    var overlay = document.getElementById('welcome-screen');
+    overlay.style.opacity = '0';
+    setTimeout(function() {
+        overlay.style.display = 'none';
+        document.getElementById('app-container').style.display = 'block';
+    }, 800);
+    
+    // ปลดล็อก Audio Context ให้ระบบเสียงทำงานในมือถือได้
+    var unlockMsg = new SpeechSynthesisUtterance('');
+    window.speechSynthesis.speak(unlockMsg);
+}
+
+// =========================================================
+// TTS ENGINE — แบบระบบคิวเสียง (Audio Queue) + เว้นจังหวะ
+// =========================================================
+var currentAudio = null;
+var _fallbackVoice = null;
+var audioQueue = [];
+var isPlaying = false;
+
+function prepareFallbackVoice() {
+    var voices = window.speechSynthesis.getVoices();
+    var thVoices = voices.filter(v => v.lang.toLowerCase().includes('th'));
+    if (thVoices.length === 0) return;
+    _fallbackVoice = thVoices.find(v => {
+        let n = v.name.toLowerCase();
+        return n.includes('google') || n.includes('kanya') || n.includes('หญิง') || n.includes('pattara');
+    }) || thVoices[0];
+}
+window.speechSynthesis.onvoiceschanged = prepareFallbackVoice;
+
+function speakText(txt) {
+    if (!txt || !txt.trim()) return;
+    audioQueue = txt.split('|').filter(item => item.trim() !== "");
+    
+    if (currentAudio) {
+        currentAudio.pause(); currentAudio.currentTime = 0;
+        currentAudio.onended = null; currentAudio.onerror = null;
+    }
+    window.speechSynthesis.cancel();
+    isPlaying = false;
+    playNextInQueue();
+}
+
+function playNextInQueue() {
+    if (audioQueue.length === 0) {
+        isPlaying = false;
+        document.getElementById('tts-status').classList.remove('show');
+        return;
+    }
+    isPlaying = true;
+    var txt = audioQueue.shift(); 
+    var url = "https://translate.googleapis.com/translate_tts?client=gtx&ie=UTF-8&tl=th&q=" + encodeURIComponent(txt.trim());
+    currentAudio = new Audio(url);
+    var statusEl = document.getElementById('tts-status');
+    statusEl.classList.add('show');
+
+    currentAudio.onended = function() {
+        if (audioQueue.length > 0) setTimeout(playNextInQueue, 500); 
+        else { isPlaying = false; statusEl.classList.remove('show'); }
+    };
+    currentAudio.onerror = function() { fallbackSpeak(txt); };
+    currentAudio.play().catch(function(e) { fallbackSpeak(txt); });
+}
+
+function fallbackSpeak(txt) {
+    window.speechSynthesis.cancel();
+    var u = new SpeechSynthesisUtterance(txt.trim());
+    u.lang = 'th-TH'; u.rate = 0.8;
+    if (!_fallbackVoice) prepareFallbackVoice();
+    if (_fallbackVoice) u.voice = _fallbackVoice; 
+    
+    u.onend = function() {
+        if (audioQueue.length > 0) setTimeout(playNextInQueue, 500);
+        else { isPlaying = false; document.getElementById('tts-status').classList.remove('show'); }
+    };
+    u.onerror = u.onend;
+    window.speechSynthesis.speak(u);
+}
+
+function stopAll() {
+    audioQueue = []; isPlaying = false;
+    if (currentAudio) { currentAudio.pause(); currentAudio.currentTime = 0; currentAudio.onended = null; }
+    window.speechSynthesis.cancel();
+    document.getElementById('tts-status').classList.remove('show');
+}
+
+// =========================================================
+// Animation Control
+// =========================================================
+function animateResult(elementId) {
+    var el = document.getElementById(elementId);
+    el.classList.remove('anim-pop');
+    void el.offsetWidth; // trigger reflow
+    el.classList.add('anim-pop');
+}
+
+// ระบบพลุกระดาษ (Confetti)
+function shootConfetti() {
+    var colors = ['#f1c40f', '#e74c3c', '#3498db', '#2ecc71', '#9b59b6'];
+    for(var i=0; i<60; i++) {
+        var conf = document.createElement('div');
+        conf.className = 'confetti';
+        conf.style.left = (Math.random() * 100) + 'vw';
+        conf.style.top = '-10px';
+        conf.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+        conf.style.animationDuration = (Math.random() * 2 + 2) + 's';
+        conf.style.animationDelay = (Math.random() * 1) + 's';
+        document.body.appendChild(conf);
+        setTimeout((function(c) { return function() { c.remove(); } })(conf), 4000);
+    }
+}
+
+// =========================================================
+// Logic การทำงานของแอป & ชุดข้อมูล
+// =========================================================
+const consData = {
+    mid:  ['ก','จ','ด','ต','บ','ป','อ'],
+    high: ['ข','ฉ','ถ','ผ','ฝ','ส','ห'],
+    low:  ['ค','ง','ช','ซ','ท','น','พ','ฟ','ม','ย','ร','ล','ว']
+};
+
+function populateSelects() {
+    var allCons = consData.mid.concat(consData.high, consData.low);
+    var c3 = document.getElementById('s3-cons'), c4 = document.getElementById('s4-cons');
+    allCons.forEach(function(c) {
+        c3.innerHTML += '<option value="'+c+'">'+c+'</option>';
+        c4.innerHTML += '<option value="'+c+'">'+c+'</option>';
+    });
+    
+    var vowels = ['า','ี','ื','ู','เ','แ','โ','อ','ใ','ไ','เ-า','ำ'];
+    var v3 = document.getElementById('s3-vowel'), v4 = document.getElementById('s4-vowel'),
+        v8 = document.getElementById('s8-vowel'), v9 = document.getElementById('s9-vowel');
+    
+    vowels.forEach(function(v) { 
+        let opt = '<option value="'+v+'">สระ '+v+'</option>';
+        v3.innerHTML += opt; v4.innerHTML += opt; v8.innerHTML += opt; v9.innerHTML += opt;
+    });
+    let exVow = '<option value="เ-ีย">สระ เ-ีย</option><option value="เ-ือ">สระ เ-ือ</option>';
+    v4.innerHTML += exVow; v8.innerHTML += exVow; v9.innerHTML += exVow;
+
+    var finals = ['ง','น','ม','ย','ว','ก','บ','ด'];
+    var f4 = document.getElementById('s4-final'), f6 = document.getElementById('s6-final');
+    finals.forEach(function(f) {
+        f4.innerHTML += '<option value="'+f+'">แม่ ก'+f+'</option>';
+        f6.innerHTML += '<option value="'+f+'">แม่ ก'+f+'</option>';
+    });
+}
+
+function renderThaiWord(c, v, f) {
+    if (["า","ี","ื","ู","ิ","ึ","ุ","อ","ำ"].indexOf(v) > -1) return c + v + f;
+    if (["เ","แ","โ","ใ","ไ"].indexOf(v) > -1) return v + c + f;
+    if (v === "เ-ีย") return "เ" + c + "ีย" + f;
+    if (v === "เ-ือ") return "เ" + c + "ือ" + f;
+    return c + v + f;
+}
+
+function getSpellVowel(v) {
+    var map = { "า":"อา", "ี":"อี", "ื":"อือ", "ู":"อู", "เ":"เอ", "แ":"แอ", "โ":"โอ", "อ":"ออ", "ใ":"ใอ", "ไ":"ไอ", "เ-า":"เอา", "ำ":"อำ", "เ-ีย":"เอีย", "เ-ือ":"เอือ", "ะ":"อะ", "โ-ะ":"โอะ", "เ-ะ":"เอะ", "แ-ะ":"แอะ", "เ-อ":"เออ", "ัว":"อัว" };
+    return map[v] || v;
+}
+
+// สเต็ปหลักๆ
+function blendStep3() {
+    var c = document.getElementById('s3-cons').value, v = document.getElementById('s3-vowel').value;
+    var w = renderThaiWord(c, v, "");
+    var spellText = c + "อ " + getSpellVowel(v) + "|" + w;
+    document.getElementById('s3-result').innerText = w;
+    animateResult('s3-result'); speakText(spellText);
+}
+
+function blendStep4() {
+    var c = document.getElementById('s4-cons').value, v = document.getElementById('s4-vowel').value, f = document.getElementById('s4-final').value;
+    var w = renderThaiWord(c, v, f);
+    var spellText = c + "อ " + getSpellVowel(v) + " " + f + "อ|" + w;
+    document.getElementById('s4-result').innerText = w;
+    animateResult('s4-result'); speakText(spellText);
+}
+
+// ควบกล้ำ (ใหม่)
+function blendStep8() {
+    var c1 = document.getElementById('s8-c1').value, c2 = document.getElementById('s8-c2').value, v = document.getElementById('s8-vowel').value;
+    var w = renderThaiWord(c1+c2, v, "");
+    var spellText = c1 + "อ " + c2 + "อ " + getSpellVowel(v) + "|" + w;
+    document.getElementById('s8-result').innerText = w;
+    animateResult('s8-result'); speakText(spellText);
+}
+
+// อักษรนำ (ใหม่)
+function blendStep9() {
+    var c1 = "ห", c2 = document.getElementById('s9-c2').value, v = document.getElementById('s9-vowel').value;
+    var w = renderThaiWord(c1+c2, v, "");
+    var spellText = "หอ " + c2 + "อ " + getSpellVowel(v) + "|" + w;
+    document.getElementById('s9-result').innerText = w;
+    animateResult('s9-result'); speakText(spellText);
+}
+
+function renderToneWord(c, v, tm) {
+    if (v === "า") return c + tm + v;
+    if (["ี", "ู"].indexOf(v) > -1) return c + v + tm;
+    if (["เ", "โ"].indexOf(v) > -1) return v + c + tm;
+    return c + v + tm;
+}
+
+function conjugateStep5() {
+    var cls = document.getElementById('s5-class').value, c = document.getElementById('s5-cons').value, v = document.getElementById('s5-vowel').value;
+    var forms = [];
+    if (cls === 'mid') forms = [ { mark: "", name: "สามัญ", spell: "" }, { mark: "่", name: "เอก", spell: " ไม้เอก " }, { mark: "้", name: "โท", spell: " ไม้โท " }, { mark: "๊", name: "ตรี", spell: " ไม้ตรี " }, { mark: "๋", name: "จัตวา", spell: " ไม้จัตวา " } ];
+    else if (cls === 'high') forms = [ { mark: "", name: "จัตวา", spell: "" }, { mark: "่", name: "เอก", spell: " ไม้เอก " }, { mark: "้", name: "โท", spell: " ไม้โท " } ];
+    else if (cls === 'low') forms = [ { mark: "", name: "สามัญ", spell: "" }, { mark: "่", name: "โท", spell: " ไม้เอก " }, { mark: "้", name: "ตรี", spell: " ไม้โท " } ];
+
+    var html = "";
+    forms.forEach(function(f) {
+        var w = renderToneWord(c, v, f.mark), bg = {"สามัญ":"#3498db","เอก":"#2ecc71","โท":"#f1c40f","ตรี":"#e67e22","จัตวา":"#e74c3c"}[f.name];
+        var baseW = renderThaiWord(c, v, ""), spellFront = c + "อ " + getSpellVowel(v);
+        var spellText = (f.spell === "") ? spellFront + "|" + baseW : spellFront + " " + baseW + f.spell + "|" + w;
+        html += '<div style="background:'+bg+'; border-radius:30px; padding:10px; width:120px; cursor:pointer;" onclick="speakText(\''+spellText+'\'); animateResult(this.firstChild.id)">' +
+                    '<div id="anim-'+w+'" style="font-size:2rem; display:inline-block;">'+w+'</div><div>'+f.name+'</div></div>';
+    });
+    document.getElementById('s5-result').innerHTML = html;
+}
+
+function transformWord() {
+    var c = document.getElementById('s6-cons').value, vd = document.getElementById('s6-vowel'), vVal = vd.value, vtype = vd.options[vd.selectedIndex].getAttribute('data-type'), f = document.getElementById('s6-final').value;
+    var res = "", story = "";
+    if (vtype==="อะ") { res = c+"ั"+f; story = "✨ สระอะเจอตัวสะกด → ไม้หันอากาศ ✨"; }
+    else if (vtype==="โอะ") { res = c+f; story = "💨 สระโอะหายไปเลย (ล่องหน)"; }
+    else if (vtype==="เอะ") { res = "เ"+c+"็"+f; story = "🐥 สระเอะ → ไม้ไต่คู้"; }
+    else if (vtype==="แอะ") { res = "แ"+c+"็"+f; story = "🐸 สระแอะ → ไม้ไต่คู้"; }
+    else if (vtype==="เออ") { if (f==='ย') { res = "เ"+c+"ย"; story = "🍃 เออ+ย เหลือ เ-ย"; } else { res = "เ"+c+"ิ"+f; story = "🍬 เออแปลงเป็นสระอิ"; } }
+    else if (vtype==="อัว") { res = c+"ว"+f; story = "🌀 อัว → ว.แหวน"; }
+
+    var spellText = c + "อ " + getSpellVowel(vVal) + " " + f + "อ|" + res;
+    document.getElementById('s6-result').innerText = res;
+    document.getElementById('s6-story').innerHTML = "📖 " + story;
+    animateResult('s6-result'); speakText(spellText);
+}
+
+function changeConsonantClass() {
+    var val = document.getElementById('s1-class').value;
+    document.getElementById('class-mid').style.display  = val==='mid'  ? 'flex' : 'none';
+    document.getElementById('class-high').style.display = val==='high' ? 'flex' : 'none';
+    document.getElementById('class-low').style.display  = val==='low'  ? 'flex' : 'none';
+}
+function updateS5Cons() { var c = document.getElementById('s5-class').value, s = document.getElementById('s5-cons'); s.innerHTML = ''; consData[c].forEach(x => s.innerHTML += '<option value="'+x+'">'+x+'</option>'); }
+function updateS6Cons() { var c = document.getElementById('s6-class').value, s = document.getElementById('s6-cons'); s.innerHTML = ''; consData[c].forEach(x => s.innerHTML += '<option value="'+x+'">'+x+'</option>'); }
+
+// ระบบ Navigation สารบัญ
+function showStep(stepId) {
+    document.getElementById('mainMenu').style.display = 'none';
+    var steps = document.getElementsByClassName('step-content');
+    for (var i = 0; i < steps.length; i++) steps[i].style.display = 'none';
+    document.getElementById(stepId).style.display = 'block';
+    
+    if (stepId === 'step1') changeConsonantClass();
+    if (stepId === 'step5') updateS5Cons();
+    if (stepId === 'step6') updateS6Cons();
+    if (stepId === 'step7') initQuiz();
+    stopAll();
+}
+
+function showMenu() {
+    var steps = document.getElementsByClassName('step-content');
+    for (var i = 0; i < steps.length; i++) steps[i].style.display = 'none';
+    document.getElementById('mainMenu').style.display = 'block';
+    stopAll();
+}
+
+// เพิ่มพจนานุกรมภาพ (Emoji) ประจำตัวพยัญชนะ
+const emojiMap = {
+    "ไก่": "🐔", "จาน": "🍽️", "เด็ก": "👦", "เต่า": "🐢",
+    "ใบไม้": "🍃", "ปลา": "🐟", "อ่าง": "🛁", "ไข่": "🥚",
+    "ฉิ่ง": "🎶", "ถุง": "🛍️", "ผึ้ง": "🐝", "ฝา": "🏺",
+    "เสือ": "🐯", "หีบ": "📦", "ควาย": "🐃", "งู": "🐍",
+    "ช้าง": "🐘", "โซ่": "⛓️", "ทหาร": "🪖", "หนู": "🐭",
+    "พาน": "🏆", "ฟัน": "🦷", "ม้า": "🐴", "ยักษ์": "👹",
+    "เรือ": "⛵", "ลิง": "🐒", "แหวน": "💍"
+};
+
+// อัปเดตฟังก์ชันโชว์เสียงและข้อความสเต็ปที่ 1
+function showSound1(sound) {
+    var parts = sound.split(" ");
+    if(parts.length > 1) {
+        var letterPart = parts[0];
+        var wordPart = parts[1];
+        var emoji = emojiMap[wordPart] || "✨";
+        // แสดงข้อความ กอ - ไก่ 🐔
+        document.getElementById('s1-result').innerHTML = letterPart + " - " + wordPart + " <span style='font-size: 1.2em;'>" + emoji + "</span>";
+    } else {
+        document.getElementById('s1-result').innerText = sound;
+    }
+    animateResult('s1-result'); 
+    speakText(sound);
+}
+
+function showSound2(sound) {
+    document.getElementById('s2-result').innerText = sound.replace("สระ ","");
+    animateResult('s2-result'); speakText(sound);
+}
+
+// =========================================================
+// แบบทดสอบ & ระบบรางวัล
+// =========================================================
+const fullQuizBank = [
+    { word: "กา",   correct: "กา",   distractors: ["ขา","ตา","ปา"] }, { word: "ปู",   correct: "ปู",   distractors: ["ดู","ตู","ปอ"] },
+    { word: "ปลา",  correct: "ปลา",  distractors: ["ปู","พลา","ปลง"] }, { word: "ขา",   correct: "ขา",   distractors: ["คา","กา","ขี"] },
+    { word: "งู",   correct: "งู",   distractors: ["อู","ญู","งอ"] }, { word: "ไฟ",   correct: "ไฟ",   distractors: ["ไผ","ไก","ฟาย"] },
+    { word: "หู",   correct: "หู",   distractors: ["ดู","นู","หอ"] }, { word: "แมว",  correct: "แมว",  distractors: ["แมง","แมด","มาน"] },
+    { word: "นก",   correct: "นก",   distractors: ["ยก","อก","นาง"] }, { word: "รถ",   correct: "รถ",   distractors: ["รด","รน","รส"] },
+    { word: "ค้าง", correct: "ค้าง", distractors: ["คาง","ข่าง","ค่าน"] }, { word: "นอน",  correct: "นอน",  distractors: ["นน","นอ","นอง"] }
+];
+
+var currentQuestions = [], currentIndex = 0, quizScore = 0, answered = false, currentWordObj = null;
+
+function shuffleArray(arr) {
+    for (var i = arr.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var t = arr[i]; arr[i] = arr[j]; arr[j] = t; }
+    return arr;
+}
+
+function initQuiz() {
+    currentQuestions = shuffleArray(fullQuizBank.slice()).slice(0, 10);
+    currentIndex = 0; quizScore = 0; answered = false;
+    document.getElementById('nextQuizBtn').style.display = 'none';
+    document.getElementById('restartQuizBtn').style.display = 'none';
+    document.getElementById('quizFeedback').innerHTML = '';
+    loadQuizItem();
+}
+
+function loadQuizItem() {
+    if (currentIndex >= currentQuestions.length) return;
+    answered = false; currentWordObj = currentQuestions[currentIndex];
+    document.getElementById('quizScoreDisplay').innerHTML = '⭐ คะแนน: ' + quizScore + ' / ' + currentQuestions.length;
+    document.getElementById('questionNumber').innerHTML = 'ข้อที่ ' + (currentIndex+1) + ' / ' + currentQuestions.length;
+
+    var opts = shuffleArray([currentWordObj.correct].concat(currentWordObj.distractors.slice(0,3))), optsDiv = document.getElementById('optionsContainer');
+    optsDiv.innerHTML = '';
+    opts.forEach(function(opt) {
+        var btn = document.createElement('button'); btn.innerText = opt; btn.className = 'quiz-option';
+        btn.onclick = function() { checkQuizAnswer(opt); }; optsDiv.appendChild(btn);
+    });
+    
+    document.getElementById('nextQuizBtn').style.display = 'none';
+    document.getElementById('quizFeedback').innerHTML = '';
+    document.getElementById('listenWordBtn').onclick = function() { speakText(currentWordObj.word); };
+}
+
+function checkQuizAnswer(selected) {
+    if (answered) return;
+    answered = true;
+    if (selected === currentWordObj.correct) {
+        quizScore++;
+        document.getElementById('quizFeedback').innerHTML = '✅ ถูกต้อง! เก่งมาก 🎉'; document.getElementById('quizFeedback').style.color = 'green';
+        speakText('ถูกต้อง เก่งมาก');
+    } else {
+        document.getElementById('quizFeedback').innerHTML = '❌ ผิดพลาด! คำที่ถูกคือ "' + currentWordObj.correct + '"'; document.getElementById('quizFeedback').style.color = '#c0392b';
+        speakText('คำตอบที่ถูกคือ|' + currentWordObj.correct);
+    }
+    document.getElementById('quizScoreDisplay').innerHTML = '⭐ คะแนน: ' + quizScore + ' / ' + currentQuestions.length;
+    var btns = document.querySelectorAll('#optionsContainer .quiz-option');
+    for(var i=0; i<btns.length; i++) btns[i].classList.add('disabled-opt');
+    document.getElementById('nextQuizBtn').style.display = 'inline-block';
+}
+
+function nextQuestion() {
+    if (!answered) return;
+    if (currentIndex + 1 < currentQuestions.length) {
+        currentIndex++; loadQuizItem();
+    } else {
+        var total = currentQuestions.length;
+        var msg = "🎉 จบการทดสอบ! คะแนน " + quizScore + " จาก " + total + " 🎉";
+        if (quizScore === total) {
+            msg = "🌟🌟🌟🌟🌟 เยี่ยมมาก! อ่านเก่งสุด ๆ 🌟🌟🌟🌟🌟";
+            showMedalPopup(); // แสดงเหรียญรางวัลเมื่อได้เต็ม
+        }
+        
+        document.getElementById('quizFeedback').innerHTML = msg;
+        document.getElementById('nextQuizBtn').style.display = 'none';
+        document.getElementById('restartQuizBtn').style.display = 'inline-block';
+        document.getElementById('restartQuizBtn').onclick = initQuiz;
+        document.getElementById('optionsContainer').innerHTML = '';
+        speakText("จบการทดสอบ ได้คะแนน " + quizScore + "|เต็ม " + total);
+    }
+}
+document.getElementById('nextQuizBtn').onclick = nextQuestion;
+
+// ระบบเหรียญรางวัล
+function showMedalPopup() {
+    document.getElementById('medal-overlay').style.display = 'flex';
+    shootConfetti();
+    setTimeout(function() { speakText('ยอดเยี่ยมมาก|หนูได้เหรียญทองคนเก่ง'); }, 1500);
+}
+function closeMedal() { document.getElementById('medal-overlay').style.display = 'none'; }
+
+populateSelects();
+</script>
+</body>
+</html>

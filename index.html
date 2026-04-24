@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>🌟 เมืองแห่งการอ่าน - รวมโปรแกรมสนุกอ่านไทย ป.1</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Itim&family=Sarabun:wght@400;700&display=swap" rel="stylesheet">
+
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Itim', 'Sarabun', sans-serif;
+            background: linear-gradient(to bottom, #81d4fa, #e1f5fe, #c8e6c9);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 40px 20px;
+            color: #2c3e50;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* ตกแต่งพื้นหลัง */
+        .cloud { position: absolute; background: white; border-radius: 50px; opacity: 0.8; animation: floatCloud linear infinite; }
+        .cloud::before, .cloud::after { content: ''; position: absolute; background: white; border-radius: 50%; }
+        .c1 { width: 100px; height: 30px; top: 10%; left: -100px; animation-duration: 25s; }
+        .c1::before { width: 50px; height: 50px; top: -20px; left: 15px; }
+        .c1::after { width: 40px; height: 40px; top: -15px; left: 45px; }
+        .c2 { width: 150px; height: 40px; top: 20%; left: -150px; animation-duration: 35s; animation-delay: 5s; transform: scale(0.8); opacity: 0.6;}
+        .c2::before { width: 70px; height: 70px; top: -30px; left: 20px; }
+        .c2::after { width: 60px; height: 60px; top: -20px; left: 70px; }
+
+        @keyframes floatCloud { 0% { transform: translateX(-200px); } 100% { transform: translateX(120vw); } }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            z-index: 10;
+            animation: bounceIn 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        h1 {
+            color: #d84315;
+            font-size: 4.5rem;
+            text-shadow: 3px 3px 0 #fff, 6px 6px 0 #ffcc80;
+            margin-bottom: 10px;
+            letter-spacing: 2px;
+        }
+
+        .subtitle {
+            font-size: 1.8rem;
+            color: #00695c;
+            background: rgba(255,255,255,0.8);
+            display: inline-block;
+            padding: 10px 30px;
+            border-radius: 50px;
+            border: 3px dashed #4db6ac;
+        }
+
+        .hub-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            width: 100%;
+            max-width: 1100px;
+            z-index: 10;
+        }
+
+        /* ดีไซน์การ์ดแต่ละเมนู */
+        .app-card {
+            background: white;
+            border-radius: 30px;
+            overflow: hidden;
+            box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            text-decoration: none;
+            color: inherit;
+            display: block;
+            top: 0;
+            border-bottom: 8px solid transparent;
+        }
+
+        .app-card:hover {
+            transform: translateY(-10px) scale(1.02);
+            box-shadow: 0 25px 40px rgba(0,0,0,0.15);
+        }
+        
+        .app-card:active {
+            transform: translateY(0) scale(0.98);
+        }
+
+        .card-header {
+            padding: 30px 20px;
+            text-align: center;
+            font-size: 5rem;
+            position: relative;
+        }
+
+        .card-body {
+            padding: 20px;
+            text-align: center;
+        }
+
+        .card-title {
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+        }
+
+        .card-desc {
+            font-size: 1.3rem;
+            font-family: 'Sarabun', sans-serif;
+            color: #546e7a;
+            line-height: 1.4;
+        }
+
+        /* ธีมสีของแต่ละแอป */
+        .app-1 { border-bottom-color: #f39c12; }
+        .app-1 .card-header { background: linear-gradient(135deg, #f6d365, #fda085); }
+        .app-1 .card-title { color: #d35400; }
+
+        .app-2 { border-bottom-color: #00acc1; }
+        .app-2 .card-header { background: linear-gradient(135deg, #84fab0, #8fd3f4); }
+        .app-2 .card-title { color: #00838f; }
+
+        .app-3 { border-bottom-color: #8e24aa; }
+        .app-3 .card-header { background: linear-gradient(135deg, #e0c3fc, #8ec5fc); }
+        .app-3 .card-title { color: #6a1b9a; }
+
+        .app-4 { border-bottom-color: #43a047; }
+        .app-4 .card-header { background: linear-gradient(135deg, #a1c4fd, #c2e9fb); }
+        .app-4 .card-title { color: #2e7d32; }
+
+        .app-5 { border-bottom-color: #f4511e; }
+        .app-5 .card-header { background: linear-gradient(135deg, #ffecd2, #fcb69f); }
+        .app-5 .card-title { color: #c62828; }
+
+        .app-6 { border-bottom-color: #03a9f4; }
+        .app-6 .card-header { background: linear-gradient(135deg, #cfd9df, #e2ebf0); }
+        .app-6 .card-title { color: #01579b; }
+
+        @keyframes bounceIn {
+            0% { transform: scale(0.5); opacity: 0; }
+            80% { transform: scale(1.05); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        footer {
+            margin-top: 50px;
+            font-size: 1.4rem;
+            color: #455a64;
+            text-align: center;
+            z-index: 10;
+            background: rgba(255,255,255,0.7);
+            padding: 10px 30px;
+            border-radius: 50px;
+        }
+
+        @media (max-width: 600px) {
+            h1 { font-size: 3rem; }
+            .subtitle { font-size: 1.4rem; }
+            .hub-grid { grid-template-columns: 1fr; gap: 20px; }
+            .card-header { font-size: 4rem; padding: 20px; }
+            .card-title { font-size: 1.8rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- เมฆประดับพื้นหลัง -->
+    <div class="cloud c1"></div>
+    <div class="cloud c2"></div>
+
+    <div class="header">
+        <h1>🌟 เมืองแห่งการอ่าน ป.1</h1>
+        <div class="subtitle">เลือกด่านที่หนูอยากฝึกฝนวันนี้ได้เลย!</div>
+    </div>
+
+    <div class="hub-grid">
+        
+        <!-- โปรเจกต์ 1 -->
+        <a href="read_p1_fixed.html" class="app-card app-1">
+            <div class="card-header">📖🐘</div>
+            <div class="card-body">
+                <h2 class="card-title">1. สมุดฝึกอ่านไทย</h2>
+                <p class="card-desc">ปูพื้นฐาน พยัญชนะ สระ ตัวสะกด ผันวรรณยุกต์ และสระเปลี่ยนรูป</p>
+            </div>
+        </a>
+
+        <!-- โปรเจกต์ 2 -->
+        <a href="read_p1_test.html" class="app-card app-2">
+            <div class="card-header">📊💡</div>
+            <div class="card-body">
+                <h2 class="card-title">2. ทดสอบ RT จิ๋ว</h2>
+                <p class="card-desc">อ่านคำศัพท์แล้วเลือกรูปภาพที่ถูกต้อง พร้อมหน้าบันทึกสถิติสำหรับครู</p>
+            </div>
+        </a>
+
+        <!-- โปรเจกต์ 3 -->
+        <a href="read_p1_voice.html" class="app-card app-3">
+            <div class="card-header">🎤👂</div>
+            <div class="card-body">
+                <h2 class="card-title">3. ฟังเสียงอ่านอัจฉริยะ</h2>
+                <p class="card-desc">ฝึกอ่านออกเสียงให้ AI ฟัง เพื่อทดสอบความถูกต้องของการสะกดคำ</p>
+            </div>
+        </a>
+
+        <!-- โปรเจกต์ 4 -->
+        <a href="read_p1_story.html" class="app-card app-4">
+            <div class="card-header">🧩🖼️</div>
+            <div class="card-body">
+                <h2 class="card-title">4. สมุดภาพหรรษา</h2>
+                <p class="card-desc">อ่านจับใจความ แล้วลากคำศัพท์ไปเติมในช่องว่างให้เป็นประโยคที่สมบูรณ์</p>
+            </div>
+        </a>
+
+        <!-- โปรเจกต์ 5 -->
+        <a href="read_p1_dictation.html" class="app-card app-5">
+            <div class="card-header">✏️📝</div>
+            <div class="card-body">
+                <h2 class="card-title">5. เขียนตามคำบอก</h2>
+                <p class="card-desc">ฟังเสียงอ่าน แล้วใช้นิ้วประกอบร่างตัวอักษรให้กลายเป็นคำศัพท์ที่ถูกต้อง</p>
+            </div>
+        </a>
+
+        <!-- โปรเจกต์ 6 -->
+        <a href="read_p1_sentence.html" class="app-card app-6">
+            <div class="card-header">🚂🚃</div>
+            <div class="card-body">
+                <h2 class="card-title">6. รถไฟแต่งประโยค</h2>
+                <p class="card-desc">สวมบทนายสถานี เรียงคำศัพท์ให้เป็นประโยคที่ถูกต้องตามหลักไวยากรณ์</p>
+            </div>
+        </a>
+
+    </div>
+
+    <footer>
+        ✨ พัฒนาโดย ลุง "ศน.เจน" เพื่อเด็กเก่งภาษาไทยทุกคน ✨
+    </footer>
+
+</body>
+</html>
